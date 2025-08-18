@@ -1,24 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Login } from './components/Login';
 import { Dashboard } from './components/Dashboard';
 import { DiseaseManagement } from './components/DiseaseManagement';
+import { useAuthStore } from '../store/useAuthStore';
 import './App.css';
 
 type CurrentPage = 'login' | 'dashboard' | 'disease-management';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentPage, setCurrentPage] = useState<CurrentPage>('login');
+  const [currentPage, setCurrentPage] = useState<CurrentPage>('dashboard');
+  const { isAuthenticated, initializeAuth, logout } = useAuthStore();
+
+  useEffect(() => {
+    // Initialize authentication on app start
+    initializeAuth();
+  }, [initializeAuth]);
 
   const handleLogin = (success: boolean) => {
-    setIsAuthenticated(success);
     if (success) {
       setCurrentPage('dashboard');
     }
   };
 
   const handleLogout = () => {
-    setIsAuthenticated(false);
+    logout();
     setCurrentPage('login');
   };
 

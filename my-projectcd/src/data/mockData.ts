@@ -86,6 +86,6 @@ export const mockPlantRequests: PlantRequest[] = [
 
 // Mock admin credentials
 export const adminCredentials = {
-  username: 'admin',
+  email: 'admin@example.com',
   password: 'admin123'
 };

@@ -1,12 +1,13 @@
 # 🌶️ CropScan AI - Chilli Infestation Dashboard
 
-A professional AI-powered dashboard for chilli plant disease detection, management, and monitoring. This system provides comprehensive tools for agricultural researchers and farmers to identify, track, and manage plant diseases effectively.
+A modern, responsive frontend dashboard for chilli plant disease detection and management. Built with cutting-edge web technologies to provide an intuitive interface for agricultural disease monitoring and analysis.
 
-![CropScan AI](https://img.shields.io/badge/CropScan%20AI-v1.0.0-green?style=for-the-badge)
+![CropScan AI](https://img.shields.io/badge/CropScan%20AI-v2.0.0-green?style=for-the-badge)
 ![React](https://img.shields.io/badge/React-19.1.1-blue?style=flat-square&logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue?style=flat-square&logo=typescript)
 ![Vite](https://img.shields.io/badge/Vite-7.1.0-purple?style=flat-square&logo=vite)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4.1.11-teal?style=flat-square&logo=tailwindcss)
+![Zustand](https://img.shields.io/badge/Zustand-5.2.0-orange?style=flat-square)
 
 ## 🏛️ About
 
@@ -14,24 +15,33 @@ A professional AI-powered dashboard for chilli plant disease detection, manageme
 
 ## ✨ Features
 
-### 🔐 Admin Authentication
-- Secure login system for authorized personnel
-- Role-based access control
-- Demo credentials for testing and evaluation
+### 🔐 User Authentication
+- Secure login and signup system
+- JWT-based authentication
+- Form validation and error handling
+- Persistent login sessions
 
-### 📊 Dashboard Analytics
-- **Plant Request Management**: View and track disease identification requests
-- **Multi-Image Support**: Handle multiple images per plant request
-- **Real-time Status Tracking**: Monitor request processing status
-- **Location-based Filtering**: Track geographical distribution of diseases
-- **Advanced Search**: Search by disease type, location, or request ID
+### 📊 Interactive Dashboard
+- **Plant Data Visualization**: View and analyze plant disease records
+- **Real-time Statistics**: Total plants, active searches, and location tracking
+- **Advanced Search & Filtering**: Search by disease name, location, or plant ID
+- **Responsive Data Tables**: Mobile-friendly plant records display
+- **Enhanced Modal Views**: Detailed plant information with glassmorphism effects
 
-### 🦠 Disease Management System
-- **CRUD Operations**: Create, Read, Update, Delete disease information
-- **Solution Database**: Maintain comprehensive treatment solutions
-- **Expert Recommendations**: Store and manage expert advice
-- **Version Control**: Track updates and modifications
-- **Search & Filter**: Quick access to disease information
+### 🦠 Disease Management Interface
+- **Complete CRUD Operations**: Add, view, edit, and delete disease records
+- **Treatment Solutions**: Manage and update disease treatment recommendations
+- **Inline Editing**: Quick edit functionality for disease solutions
+- **Bulk Operations**: Populate sample data and clear all records
+- **Real-time Updates**: Instant UI updates after data modifications
+
+### 🎨 Modern UI/UX
+- **Glassmorphism Design**: Modern glass effects and backdrop blur
+- **Gradient Backgrounds**: Beautiful color gradients throughout the interface
+- **Smooth Animations**: Polished transitions and micro-interactions
+- **Loading States**: Professional loading indicators and skeleton screens
+- **Error Handling**: User-friendly error messages and retry options
+- **Mobile Responsive**: Fully responsive design for all screen sizes
 
 
 
@@ -66,9 +76,7 @@ yarn dev
 
 4. **Open in browser**
    - Navigate to `http://localhost:5173`
-   - Use demo credentials:
-     - **Username**: `admin`
-     - **Password**: `admin123`
+   - Use the authentication system to login or create an account
 
 ### Build for Production
 
@@ -91,13 +99,19 @@ yarn preview
 ```
 src/
 ├── components/           # React components
-│   ├── Dashboard.tsx    # Main dashboard with plant requests
-│   ├── Login.tsx        # Authentication component
-│   ├── DiseaseManagement.tsx # Disease CRUD operations
+│   ├── Dashboard.tsx    # Main dashboard with plant data visualization
+│   ├── Login.tsx        # Authentication component with signup/signin
+│   ├── DiseaseManagement.tsx # Disease CRUD operations interface
 │   └── Footer.tsx       # Reusable footer component
-├── data/                # Mock data and configurations
-│   └── mockData.ts      # Sample data for development
-├── services/            # API services and utilities
+├── store/               # Zustand state management
+│   ├── useAuthStore.ts  # Authentication state management
+│   ├── useDiseaseStore.ts # Disease data state management
+│   └── usePlantStore.ts # Plant data state management
+├── lib/                 # Utility libraries
+│   └── axiosInstance.ts # HTTP client configuration
+├── data/                # Static data and configurations
+│   └── mockData.ts      # Demo credentials and sample data
+├── services/            # API services
 │   └── api.ts           # API integration layer
 ├── types/               # TypeScript type definitions
 │   └── index.ts         # Global type definitions
@@ -111,41 +125,45 @@ src/
 Create a `.env` file in the root directory:
 
 ```env
-VITE_API_BASE_URL=http://localhost:3000/api
 VITE_APP_NAME=CropScan AI
-VITE_VERSION=1.0.0
+VITE_VERSION=2.0.0
 ```
 
 ### Tailwind CSS
 The project uses Tailwind CSS v4 with custom configurations for:
 - Custom color palette for agricultural themes
 - Responsive breakpoints
-- Custom animations and transitions
+- Modern glassmorphism effects
+- Smooth animations and transitions
 - Component-specific styling
 
 
 
 ## 🧪 Testing
 
-### Demo Credentials
-- **Username**: `admin`
-- **Password**: `admin123`
+### Authentication System
+- Test the login/signup functionality
+- JWT token persistence validation
+- Form validation and error handling
 
-### Mock Data
-The application includes comprehensive mock data for:
-- Plant disease requests with multiple images
-- Disease database with solutions
-- User authentication data
+### Demo Features
+The application includes comprehensive demo features:
+- Sample plant disease records
+- Disease management interface
+- Interactive dashboard components
+- Responsive design testing
 
 ## 🛠️ Development
 
 ### Tech Stack
-- **Frontend**: React 19.1.1 with TypeScript
-- **Build Tool**: Vite 7.1.0
-- **Styling**: Tailwind CSS 4.1.11
-- **Icons**: Lucide React
-- **Date Handling**: date-fns
-- **Routing**: React Router DOM 7.8.0
+- **Frontend Framework**: React 19.1.1 with TypeScript
+- **Build Tool**: Vite 7.1.0 for fast development and building
+- **Styling**: Tailwind CSS 4.1.11 with glassmorphism effects
+- **State Management**: Zustand for efficient state management
+- **HTTP Client**: Axios for API communication
+- **Icons**: Lucide React for modern iconography
+- **Date Handling**: date-fns for date formatting and manipulation
+- **Form Handling**: Built-in React hooks with validation
 
 ### Code Quality
 - **ESLint**: Configured with React and TypeScript rules
@@ -161,12 +179,20 @@ npm run lint      # Run ESLint
 npm run preview   # Preview production build
 ```
 
-## 📱 Browser Support
+## 📱 Browser Support & Performance
 
-- Chrome (recommended)
-- Firefox
-- Safari
-- Edge
+### Supported Browsers
+- **Chrome** (recommended) - v90+
+- **Firefox** - v88+
+- **Safari** - v14+
+- **Edge** - v90+
+
+### Performance Features
+- **Fast Refresh**: Instant updates during development
+- **Code Splitting**: Optimized bundle sizes
+- **Lazy Loading**: Efficient component loading
+- **Image Optimization**: Responsive image handling
+- **Caching Strategy**: Optimized state persistence
 
 
 ## 📄 License
@@ -181,8 +207,9 @@ This project is developed for academic and research purposes at Banaras Hindu Un
 - **Institution**: Banaras Hindu University
 
 ### Technical Support
-- **Email**: help@cropscan.ai
-- **Research Inquiries**: research@cropscan.ai
+- **Frontend Issues**: UI/UX related queries and bug reports
+- **Feature Requests**: New functionality suggestions
+- **Documentation**: Usage and integration guides
 
 ### University Information
 - **Location**: Varanasi, Uttar Pradesh, India

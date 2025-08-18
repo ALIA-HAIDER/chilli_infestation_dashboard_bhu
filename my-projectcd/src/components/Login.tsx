@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Lock, User, AlertCircle, Eye, EyeOff, Leaf } from 'lucide-react';
+import { Lock, User, AlertCircle, Eye, EyeOff, Leaf, Mail, UserPlus } from 'lucide-react';
+import { useAuthStore } from '../../store/useAuthStore';
 import { adminCredentials } from '../data/mockData';
 
 interface LoginProps {
@@ -7,28 +8,148 @@ interface LoginProps {
 }
 
 export const Login: React.FC<LoginProps> = ({ onLogin }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  const { login, signup } = useAuthStore();
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const validateForm = (): boolean => {
+    if (isSignUp) {
+      if (!formData.username.trim()) {
+        setError('Username is required');
+        return false;
+      }
+      if (!formData.email.trim() || !formData.email.includes('@')) {
+        setError('Valid email is required');
+        return false;
+      }
+      if (formData.password.length < 6) {
+        setError('Password must be at least 6 characters');
+        return false;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        setError('Passwords do not match');
+        return false;
+      }
+    } else {
+      if (!formData.username.trim() || !formData.password.trim()) {
+        setError('Email and password are required');
+        return false;
+      }
+      if (!formData.username.includes('@')) {
+        setError('Please enter a valid email address');
+        return false;
+      }
+    }
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    if (username === adminCredentials.username && password === adminCredentials.password) {
-      onLogin(true);
-    } else {
-      setError('Invalid username or password');
-      onLogin(false);
+    if (!validateForm()) {
+      setIsLoading(false);
+      return;
     }
-    
-    setIsLoading(false);
+
+    try {
+      if (isSignUp) {
+        // For signup, use the auth store
+        console.log('Signing up with:', {
+          username: formData.username,
+          email: formData.email,
+          password: formData.password
+        });
+        
+        await signup({
+          username: formData.username,
+          email: formData.email,
+          password: formData.password
+        });
+        
+        // Clear form after successful signup
+        setFormData({ username: '', email: '', password: '', confirmPassword: '' });
+        onLogin(true);
+      } else {
+        // For signin, check mock credentials first, then try auth store
+        if (formData.username === adminCredentials.email && formData.password === adminCredentials.password) {
+          // Mock login for demo - simulate successful authentication
+          console.log('Mock login successful');
+          onLogin(true);
+        } else {
+          // Try actual login through auth store
+          console.log('Attempting login with:', {
+            username: formData.username,
+            password: formData.password
+          });
+          
+          await login({
+            username: formData.username,
+            password: formData.password
+          });
+          
+          // Clear form after successful login
+          setFormData({ username: '', email: '', password: '', confirmPassword: '' });
+          onLogin(true);
+        }
+      }
+    } catch (error: any) {
+      console.error('Authentication error:', error);
+      
+      // Better error handling
+      let errorMessage = 'Authentication failed. Please try again.';
+      
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        if (error.response.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response.data?.error) {
+          errorMessage = error.response.data.error;
+        } else if (error.response.status === 400) {
+          errorMessage = 'Invalid request format. Please check your input.';
+        } else if (error.response.status === 401) {
+          errorMessage = 'Invalid credentials. Please check your username and password.';
+        } else if (error.response.status === 409) {
+          errorMessage = 'User already exists. Please try a different username or email.';
+        } else if (error.response.status >= 500) {
+          errorMessage = 'Server error. Please try again later.';
+        }
+      } else if (error.request) {
+        // The request was made but no response was received
+        errorMessage = 'Unable to connect to server. Please check your internet connection.';
+      }
+      
+      setError(errorMessage);
+      onLogin(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const toggleMode = () => {
+    setIsSignUp(!isSignUp);
+    setFormData({ username: '', email: '', password: '', confirmPassword: '' });
+    setError('');
   };
 
   return (
@@ -47,8 +168,12 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
         {/* Login Card */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900 text-center mb-2">Admin Login</h2>
-            <p className="text-gray-600 text-center">Sign in to manage the dashboard</p>
+            <h2 className="text-2xl font-semibold text-gray-900 text-center mb-2">
+              {isSignUp ? 'Create Account' : 'Admin Login'}
+            </h2>
+            <p className="text-gray-600 text-center">
+              {isSignUp ? 'Sign up to access the dashboard' : 'Sign in to manage the dashboard'}
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -63,23 +188,48 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             {/* Username Field */}
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
-                Username
+                {isSignUp ? 'Username' : 'Email'}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" />
+                  {isSignUp ? <User className="h-5 w-5 text-gray-400" /> : <Mail className="h-5 w-5 text-gray-400" />}
                 </div>
                 <input
                   id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  name="username"
+                  type={isSignUp ? "text" : "email"}
+                  value={formData.username}
+                  onChange={handleInputChange}
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
-                  placeholder="Enter your username"
+                  placeholder={isSignUp ? "Enter your username" : "Enter your email"}
                   required
                 />
               </div>
             </div>
+
+            {/* Email Field (Sign Up Only) */}
+            {isSignUp && (
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  Email
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                    placeholder="Enter your email"
+                    required
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Password Field */}
             <div>
@@ -92,9 +242,10 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 </div>
                 <input
                   id="password"
+                  name="password"
                   type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={formData.password}
+                  onChange={handleInputChange}
                   className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
                   placeholder="Enter your password"
                   required
@@ -109,6 +260,37 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
               </div>
             </div>
 
+            {/* Confirm Password Field (Sign Up Only) */}
+            {isSignUp && (
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                    placeholder="Confirm your password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Submit Button */}
             <button
               type="submit"
@@ -118,20 +300,36 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
               {isLoading ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Signing in...
+                  {isSignUp ? 'Creating Account...' : 'Signing in...'}
                 </div>
               ) : (
-                'Sign In'
+                <div className="flex items-center justify-center">
+                  {isSignUp ? <UserPlus className="h-5 w-5 mr-2" /> : <User className="h-5 w-5 mr-2" />}
+                  {isSignUp ? 'Create Account' : 'Sign In'}
+                </div>
               )}
             </button>
           </form>
 
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-            <p className="text-sm font-medium text-blue-900 mb-2">Demo Credentials:</p>
-            <p className="text-sm text-blue-700">Username: <span className="font-mono bg-blue-100 px-1 rounded">admin</span></p>
-            <p className="text-sm text-blue-700">Password: <span className="font-mono bg-blue-100 px-1 rounded">admin123</span></p>
+          {/* Toggle Between Sign In/Sign Up */}
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              onClick={toggleMode}
+              className="text-green-600 hover:text-green-700 font-medium transition-colors"
+            >
+              {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
+            </button>
           </div>
+
+          {/* Demo Credentials (Sign In Only) */}
+          {!isSignUp && (
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+              <p className="text-sm font-medium text-blue-900 mb-2">Demo Credentials:</p>
+              <p className="text-sm text-blue-700">Email: <span className="font-mono bg-blue-100 px-1 rounded">admin@example.com</span></p>
+              <p className="text-sm text-blue-700">Password: <span className="font-mono bg-blue-100 px-1 rounded">admin123</span></p>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
